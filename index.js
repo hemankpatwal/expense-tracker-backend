@@ -2,10 +2,12 @@ const express = require('express');
 const mongoose = require('mongoose');
 require('dotenv').config();
 const Expense = require('./models/expense');
+const cors = require('cors');
 
 const app = express();
 const port = process.env.PORT || 3000;
 
+app.use(cors());
 app.use(express.json());
 
 mongoose.connect(process.env.MONGODB_URI)
