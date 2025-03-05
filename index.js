@@ -43,6 +43,43 @@ app.get('/expenses', async (req, res) => {
     }
 });
 
+app.get('/expenses/total', async (req, res) => {
+    try {
+        const { start, end } = req.query;
+
+        if (!start || !end) {
+            return res.status(400).send({ error: 'Start and end dates are required' });
+        }
+
+        const startDate = new Date(start);
+        const endDate = new Date(end);
+        endDate.setDate(endDate.getDate() + 1); 
+
+        if (isNaN(startDate) || isNaN(endDate)) {
+            return res.status(400).send({ error: 'Invalid date format' });
+        }
+
+        const result = await Expense.aggregate([
+            {
+                $match: {
+                    date: { $gte: startDate, $lt: endDate }
+                }
+            },
+            {
+                $group: {
+                    _id: null,
+                    total: { $sum: '$amount' }
+                }
+            }
+        ]);
+
+        const total = result.length > 0 ? result[0].total : 0;
+        res.status(200).send({ total });
+    } catch (error) {
+        res.status(500).send({ error: error.message });
+    }
+});
+
 app.get('/', (req, res) => {
     res.send('Hello, World! This is the Expense Tracker Backend.');
 });
